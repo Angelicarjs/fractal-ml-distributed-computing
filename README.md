@@ -18,8 +18,9 @@
 - Spark reads the data directly from S3 paths for distributed processing.
 
 ## 2. Data Preprocessing
-- Check for **null values**.  
-- Check the **balance of the classes**.  
+- Check emphy or zero columns.
+- Check for null values.  
+- Check the balance of the classes.  
 - **Normalize numeric columns**, including **height normalization** (e.g., subtract minimum *z* per patch or within a radius).
 
 ## 3. Model Implementation
