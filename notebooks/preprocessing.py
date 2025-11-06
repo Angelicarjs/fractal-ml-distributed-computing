@@ -49,7 +49,7 @@ df.printSchema()
 
 
 # print some rows
-df.show(10,truncate=False
+df.show(10,truncate=False)
 
 # In[38]:
 
