@@ -6,6 +6,7 @@ from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when
+from sparkmeasure import TaskMetrics
 
 
 def parse_args():
@@ -14,7 +15,7 @@ def parse_args():
     parser.add_argument("--executor-memory", default="4g")
     parser.add_argument("--driver-memory", default="2g")
     parser.add_argument("--num-executors", type=int, default=2)
-    parser.add_argument("--data-path", default="/opt/spark/work-dir/data/FRACTAL")
+    parser.add_argument("--data-path", default="s3://ubs-datasets/FRACTAL/data/test/")
     parser.add_argument("--sample-fraction", type=float, default=0.2)
     parser.add_argument("--output-file", default="results.json")
     return parser.parse_args()
@@ -69,6 +70,9 @@ def load_sample(spark, path, fraction, cols):
 def main():
     args = parse_args()
     spark = create_spark_session(args)
+
+    taskmetrics = TaskMetrics(spark)
+    taskmetrics.begin()
 
     cols = ["xyz", "Intensity", "Classification", "Red", "Green", "Blue", "Infrared"]
 
@@ -128,6 +132,12 @@ def main():
         json.dump(results, f, indent=2)
 
     print(f"\nResults saved to {args.output_file}")
+
+    taskmetrics.end()
+    print("\n============< read.parquet() statistics >============\n")
+    taskmetrics.print_report()
+    print("\n=====================================================\n")
+
 
     spark.stop()
 
