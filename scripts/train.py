@@ -7,6 +7,7 @@ from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, when
 from sparkmeasure import TaskMetrics
+from pyspark.sql import functions as F
 
 
 def parse_args():
@@ -16,7 +17,7 @@ def parse_args():
     parser.add_argument("--driver-memory", default="2g")
     parser.add_argument("--num-executors", type=int, default=2)
     parser.add_argument("--data-path", default="s3://ubs-datasets/FRACTAL/data/")
-    parser.add_argument("--sample-fraction", type=float, default=0.2)
+    parser.add_argument("--sample-fraction", type=float, default=0.1)
     parser.add_argument("--output-file", default="results.json")
     return parser.parse_args()
 
@@ -44,6 +45,14 @@ def create_spark_session(args):
 
 def prepare_data(df):
     df = df.withColumn("z", col("xyz")[2])
+
+    #get the minimum z per patch
+    min_z = df.agg(F.min("z").alias("z_min")).collect()[0]["z_min"]
+    print(f"Minimum Z (global) = {min_z}")
+
+    #subtract the minimum z per patch to the z coordinates
+    df = df.withColumn("z", F.col("z") - F.lit(min_z))
+                    
     df = df.withColumn(
         "ndvi",
         when(
